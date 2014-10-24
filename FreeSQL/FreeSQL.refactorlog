@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="22bc6d26-77fe-4f4d-b492-fa9b6a839cf1" ChangeDateTime="10/23/2014 18:40:17">
+    <Property Name="ElementName" Value="[dbo].[FreeAppUserClaim].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserClaim]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ClaimId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="add70433-eeea-4ad1-9be0-b4694e87e9bc" ChangeDateTime="10/23/2014 18:42:26">
+    <Property Name="ElementName" Value="[dbo].[FreeAppUserClaimType].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserClaimType]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="TypeId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="439c69ad-7712-4b9a-a118-e7033e6d8851" ChangeDateTime="10/23/2014 18:44:29">
+    <Property Name="ElementName" Value="[dbo].[FreeAppUserLogin].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserLogin]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="59910d61-0658-4599-a547-c81e15302984" ChangeDateTime="10/23/2014 19:56:41">
+    <Property Name="ElementName" Value="[dbo].[FreeAppUserClaim].[Value]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserClaim]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ClaimValue" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="54c7a6ce-a174-47f3-a96a-ed5a89941c46" ChangeDateTime="10/23/2014 19:57:03">
+    <Property Name="ElementName" Value="[dbo].[FreeAppUserClaim].[ValueType]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserClaim]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ClaimValueType" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="15ae94fe-ebe2-4dd0-ad83-2d766b50fb44" ChangeDateTime="10/23/2014 19:57:40">
+    <Property Name="ElementName" Value="[dbo].[FreeAppUserLogin].[LoginProviderKey]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserLogin]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ProviderKey" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3e4d65c2-0691-4900-8d84-02ed2c7f538d" ChangeDateTime="10/23/2014 19:59:21">
+    <Property Name="ElementName" Value="[dbo].[FK_FreeAppUserLogin_ToTable]" />
+    <Property Name="ElementType" Value="SqlForeignKeyConstraint" />
+    <Property Name="ParentElementName" Value="[dbo].[FreeAppUserLogin]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[FK_FreeAppUserLogin_FreeAppUser]" />
+  </Operation>
+</Operations>
