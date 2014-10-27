@@ -7,11 +7,11 @@ using Dapper.Contrib.Extensions;
 
 namespace FreeIdentity.Models
 {
-    [Table("FreeAppUserRole")]
     public class FreeAppUserRole
     {
         [Key]
         public int RoleId { get; set; }
+        [Key]
         public int UserId { get; set; }
     }
 }

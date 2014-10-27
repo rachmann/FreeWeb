@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Globalization;
+using System.Security.Claims;
 using FreeIdentity.Models;
 using Microsoft.AspNet.Identity;
 using System;
@@ -21,8 +22,8 @@ namespace FreeIdentity
             if (user.Id == 0) // happens after create new user
                 user = await manager.FindByNameAsync(user.UserName); // userName must be unique for this to work
 
-            ClaimsIdentity id = new ClaimsIdentity(authenticationType, this.UserNameClaimType, this.RoleClaimType);
-            id.AddClaim(new Claim(this.UserIdClaimType, this.ConvertIdToString(user.Id), "http://www.w3.org/2001/XMLSchema#string"));
+            var id = new ClaimsIdentity(authenticationType, this.UserNameClaimType, this.RoleClaimType);
+            id.AddClaim(new Claim(this.UserIdClaimType, user.Id.ToString(CultureInfo.InvariantCulture), "http://www.w3.org/2001/XMLSchema#string"));
             id.AddClaim(new Claim(this.UserNameClaimType, user.UserName, "http://www.w3.org/2001/XMLSchema#string"));
             id.AddClaim(new Claim("http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider", "ASP.NET Identity", "http://www.w3.org/2001/XMLSchema#string"));
 

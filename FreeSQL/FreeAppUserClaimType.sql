@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[FreeAppUserClaimType]
+﻿CREATE TABLE [dbo].[FreeAppUserClaimTypes]
 (
 	[TypeId] INT IDENTITY(1,1) NOT NULL, 
     [ClaimTypeCode] VARCHAR(10) NOT NULL, 

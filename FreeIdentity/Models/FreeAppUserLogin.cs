@@ -8,12 +8,13 @@ using Dapper.Contrib.Extensions;
 
 namespace FreeIdentity.Models
 {
-    [Table("FreeAppUserLogin")]
     public class FreeAppUserLogin
     {
         [Key]
         public int UserId { get; set; }
+        [Key]
         public string LoginProvider { get; set; }
+        [Key]
         public string ProviderKey { get; set; }
     }
 }

@@ -54,7 +54,7 @@ namespace FreeIdentity
             };
 
             manager.ClaimsIdentityFactory = new FreeAppClaimsIdentityFactory();
-
+            manager.EmailService = new EmailService();
             manager.RegisterTwoFactorProvider("PhoneCode",
             new PhoneNumberTokenProvider<FreeAppUser, int>
             {
@@ -69,7 +69,7 @@ namespace FreeIdentity
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {
-                manager.UserTokenProvider = new DataProtectorTokenProvider<FreeAppUser, int>(dataProtectionProvider.Create("PasswordReset"));
+                manager.UserTokenProvider = new DataProtectorTokenProvider<FreeAppUser, int>(dataProtectionProvider.Create("ASP.NET Identity"));
             }
             return manager;
         }

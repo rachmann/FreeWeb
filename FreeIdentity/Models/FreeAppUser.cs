@@ -7,7 +7,6 @@ using Dapper.Contrib.Extensions;
 
 namespace FreeIdentity.Models
 {
-    [Table("FreeAppUser")]
     public class FreeAppUser : IUser<int>
     {
         public Task<ClaimsIdentity> GenerateUserIdentityAsync(FreeAppUserManager manager)
@@ -38,13 +37,6 @@ namespace FreeIdentity.Models
         public bool LockoutEnabled { get; set; }
         public int AccessFailedCount { get; set; }
         public string ApplicationName { get; set; }
-
-
-        [Computed]
-        public int UserId
-        {
-            get { return Id; }
-        }
 
     }
 }

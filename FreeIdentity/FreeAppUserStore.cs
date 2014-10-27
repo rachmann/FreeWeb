@@ -97,7 +97,7 @@ namespace FreeIdentity
         Task<FreeAppUser> IUserStore<FreeAppUser, int>.FindByNameAsync(string userName)
         {
             return Task.Factory.StartNew(() => _sqlConn.Query<FreeAppUser>(
-                "SELECT * FROM FreeAppUser WHERE FreeAppUser.UserName = @userName", 
+                "SELECT * FROM FreeAppUsers WHERE FreeAppUsers.UserName = @userName", 
                 new { userName }).FirstOrDefault());
         }
 
@@ -127,7 +127,7 @@ namespace FreeIdentity
         Task<FreeAppUser> IUserEmailStore<FreeAppUser, int>.FindByEmailAsync(string email)
         {
             return Task.Factory.StartNew(() => _sqlConn.Query<FreeAppUser>(
-                "SELECT * FROM FreeAppUser WHERE FreeAppUser.Email = @email", 
+                "SELECT * FROM FreeAppUsers WHERE FreeAppUsers.Email = @email", 
                 new { email }).FirstOrDefault());
         }
         #endregion
@@ -156,11 +156,11 @@ namespace FreeIdentity
             return Task.Factory.StartNew(() =>
             {
                 //does this role exist?
-                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRole WHERE FreeAppRole.Name = @roleName", new { roleName }).FirstOrDefault();
+                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.Name = @roleName", new { roleName }).FirstOrDefault();
                 if (roleItem != null)
                 {
                     //does this user & role combo already exist?
-                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRole WHERE FreeAppUserRole.UserId = @UserId AND FreeAppUserRole.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
+                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.UserId = @UserId AND FreeAppUserRoles.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
                     if (roleUserItem == null)
                     {
                         // no - so add
@@ -176,11 +176,11 @@ namespace FreeIdentity
             return Task.Factory.StartNew(() =>
             {
                 //does this role exist?
-                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRole WHERE FreeAppRole.Name = @roleName", new { roleName }).FirstOrDefault();
+                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRoles WHERE FreeAppRoles.Name = @roleName", new { roleName }).FirstOrDefault();
                 if (roleItem != null)
                 {
                     //does this user & role combo already exist?
-                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRole WHERE FreeAppUserRole.UserId = @UserId AND FreeAppUserRole.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
+                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.UserId = @UserId AND FreeAppUserRoles.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
                     if (roleUserItem != null)
                     {
                         // yes - so delete
@@ -197,8 +197,8 @@ namespace FreeIdentity
             {
                 //does this role exist?
                 //does this user & role combo already exist?
-                var results = _sqlConn.Query<FreeAppRole>(@"SELECT FreeAppRole.* FROM FreeAppUserRole ru
-                             INNER JOIN FreeAppRole on FreeAppRole.Id = ru.RoleId WHERE ru.UserId = @Id", new { user.Id }).ToList();
+                var results = _sqlConn.Query<FreeAppRole>(@"SELECT FreeAppRoles.* FROM FreeAppUserRoles ru
+                             INNER JOIN FreeAppRoles on FreeAppRoles.Id = ru.RoleId WHERE ru.UserId = @Id", new { user.Id }).ToList();
 
                 var retList = results.Select(r => r.Name).ToList();
                 return (IList<string>)retList;
@@ -211,11 +211,11 @@ namespace FreeIdentity
             {
                 //does this role exist?
                 var result = false;
-                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRole WHERE FreeAppRole.Name = @roleName", new { roleName }).FirstOrDefault();
+                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRoles WHERE FreeAppRoles.Name = @roleName", new { roleName }).FirstOrDefault();
                 if (roleItem != null)
                 {
                     //does this user & role combo already exist?
-                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRole WHERE FreeAppUserRole.UserId = @UserId AND FreeAppUserRole.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
+                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.UserId = @UserId AND FreeAppUserRoles.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
                     if (roleUserItem != null)
                     {
                         result = true;
@@ -256,7 +256,7 @@ namespace FreeIdentity
                 {
                     var userLoginItem =
                         _sqlConn.Query<FreeAppUserLogin>(
-                            "SELECT * FROM FreeAppUserLogin WHERE FreeAppUserLogin.UserId = @Id AND FreeAppUserLogin.ProviderKey = @ProviderKey",
+                            "SELECT * FROM FreeAppUserLogins WHERE FreeAppUserLogins.UserId = @Id AND FreeAppUserLogins.ProviderKey = @ProviderKey",
                             new { user.Id, login.ProviderKey }).FirstOrDefault();
                     if (userLoginItem == null)
                     {
@@ -284,7 +284,7 @@ namespace FreeIdentity
                 if (userItem != null)
                 {
                     var userLoginItem = _sqlConn.Query<FreeAppUserLogin>(
-                        "SELECT * FROM FreeAppUserLogin WHERE FreeAppUserLogin.UserId = @Id AND FreeAppUserLogin.ProviderKey = @ProviderKey", 
+                        "SELECT * FROM FreeAppUserLogins WHERE FreeAppUserLogins.UserId = @Id AND FreeAppUserLogins.ProviderKey = @ProviderKey", 
                         new { user.Id, login.ProviderKey }).FirstOrDefault();
 
                     if (userLoginItem != null)
@@ -304,7 +304,7 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    logins = _sqlConn.Query<FreeAppUserLogin>("SELECT * FROM [dbo].[FreeAppUserLogin] WHERE [dbo].[FreeAppUserLogin].[UserId] = @Id;", 
+                    logins = _sqlConn.Query<FreeAppUserLogin>("SELECT * FROM [dbo].[FreeAppUserLogins] WHERE [dbo].[FreeAppUserLogins].[UserId] = @Id;", 
                         new { user.Id }).Select(culi => new UserLoginInfo(culi.LoginProvider, culi.ProviderKey)).ToList();
                 }
 
@@ -318,7 +318,7 @@ namespace FreeIdentity
             {
                 //does this user exist?
                 FreeAppUser user = null;
-                var freeAppUserLogin = _sqlConn.Query<FreeAppUserLogin>("SELECT * FROM [dbo].[FreeAppUserLogin] WHERE [dbo].[FreeAppUserLogin].[LoginProvider] = @LoginProvider AND [dbo].[FreeAppUserLogin].[ProviderKey] = @ProviderKey;",
+                var freeAppUserLogin = _sqlConn.Query<FreeAppUserLogin>("SELECT * FROM [dbo].[FreeAppUserLogins] WHERE [dbo].[FreeAppUserLogins].[LoginProvider] = @LoginProvider AND [dbo].[FreeAppUserLogins].[ProviderKey] = @ProviderKey;",
                     new { login.LoginProvider, login.ProviderKey }).FirstOrDefault();
                 if (freeAppUserLogin != null)
                 {
@@ -341,7 +341,7 @@ namespace FreeIdentity
             return Task.Factory.StartNew(() =>
             {
                 var claimTypes = _sqlConn.Query<FreeAppUserClaimType>(
-                    "SELECT * FROM FreeAppUserClaimType")
+                    "SELECT * FROM FreeAppUserClaimTypes")
                     .ToList();
 
                 return (IList<FreeAppUserClaimType>)claimTypes;
@@ -360,7 +360,7 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    claims = _sqlConn.Query<FreeAppUserClaimJoined>("SELECT cuc.*, cuct.ClaimTypeCode FROM FreeAppUserClaim cuc INNER JOIN FreeAppUserClaimType cuct ON cuc.ClaimTypeId = cuct.TypeId WHERE cuc.UserId = @Id;",
+                    claims = _sqlConn.Query<FreeAppUserClaimJoined>("SELECT cuc.*, cuct.ClaimTypeCode FROM FreeAppUserClaims cuc INNER JOIN FreeAppUserClaimTypes cuct ON cuc.ClaimTypeId = cuct.TypeId WHERE cuc.UserId = @Id;",
                     new { user.Id }).Select(cuc =>
                         new Claim(cuc.ClaimTypeCode, cuc.ClaimValue, cuc.ClaimValueType, cuc.Issuer))
                            .ToList();
@@ -381,8 +381,8 @@ namespace FreeIdentity
 
                     var oldClaim =
                         _sqlConn.Query<FreeAppUserClaim>(
-                            "SELECT cuc.* FROM FreeAppUserClaim cuc "+
-                               "INNER JOIN FreeAppUserClaimType cuct ON cuc.ClaimTypeId = cuct.TypeId "+
+                            "SELECT cuc.* FROM FreeAppUserClaims cuc "+
+                               "INNER JOIN FreeAppUserClaimTypes cuct ON cuc.ClaimTypeId = cuct.TypeId "+
                                "WHERE cuc.UserId = @Id AND " +
                                    "cuct.ClaimTypeCode = @Type AND " +
                                    "cuc.ClaimValue = @Value AND " +
@@ -393,7 +393,7 @@ namespace FreeIdentity
                     {
                         // verify ClaimType
                         var theClaimType = _sqlConn.Query<FreeAppUserClaimType>(
-                           "SELECT * FROM FreeAppUserClaimType WHERE ClaimTypeCode = @Type;",
+                           "SELECT * FROM FreeAppUserClaimTypes WHERE ClaimTypeCode = @Type;",
                            new { claim.Type })
                            .FirstOrDefault();
 
@@ -424,7 +424,7 @@ namespace FreeIdentity
                 {
                     var oldClaim =
                         _sqlConn.Query<FreeAppUserClaim>(
-                            "SELECT * FROM FreeAppUserClaim cuc " +
+                            "SELECT * FROM FreeAppUserClaims cuc " +
                                "WHERE cuc.UserId = @Id AND " +
                                   "cuc.ClaimTypeId = @ClaimTypeId AND " +
                                   "cuc.ClaimValue = @ClaimValue AND " +
@@ -435,7 +435,7 @@ namespace FreeIdentity
                     {
                         // verify ClaimType
                        var theClaimType = _sqlConn.Query<FreeAppUserClaimType>(
-                           "SELECT * FROM FreeAppUserClaimType WHERE TypeId = @ClaimTypeId;",
+                           "SELECT * FROM FreeAppUserClaimTypes WHERE TypeId = @ClaimTypeId;",
                            new {  claim.ClaimTypeId })
                            .FirstOrDefault();
 
@@ -458,13 +458,13 @@ namespace FreeIdentity
                 if (userItem != null)
                 {
                     var theClaimType = _sqlConn.Query<FreeAppUserClaimType>(
-                       "SELECT * from FreeAppUserClaimType WHERE ClaimTypeCode = @Type;",
+                       "SELECT * from FreeAppUserClaimTypes WHERE ClaimTypeCode = @Type;",
                        new { claim.Type })
                        .FirstOrDefault();
                     if (theClaimType != null)
                     {
                         var oldClaim = _sqlConn.Query<FreeAppUserClaim>(
-                            "SELECT * from [dbo].[FreeAppUserClaim] " +
+                            "SELECT * from [dbo].[FreeAppUserClaims] " +
                                 "WHERE UserId = @Id AND " +
                                     "ClaimTypeId = @TypeId AND " +
                                     "ClaimValue = @Value AND "+

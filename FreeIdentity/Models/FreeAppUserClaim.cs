@@ -5,7 +5,6 @@ using Dapper.Contrib.Extensions;
 
 namespace FreeIdentity.Models
 {
-    [Table("FreeAppUserClaim")]
     public class FreeAppUserClaim
     {
         [Key]
