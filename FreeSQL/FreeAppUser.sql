@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[FreeAppUser]
+﻿CREATE TABLE [dbo].[FreeAppUsers]
 (
 	[Id] INT IDENTITY(1,1) NOT NULL, 
     [Description] NVARCHAR(200) NULL, 

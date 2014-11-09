@@ -28,7 +28,7 @@ namespace FreeWeb.Controllers
             get { return (IFreeAppPrincipal)base.User; }
         }
 
-        public string DBConnection
+        public string DbConnection
         {
             get { return (string)Session["companyConnection"]; }
             set { Session["companyConnection"] = value; }

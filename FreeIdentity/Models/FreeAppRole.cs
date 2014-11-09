@@ -3,7 +3,6 @@ using Microsoft.AspNet.Identity;
 
 namespace FreeIdentity.Models
 {
-    [Table("FreeAppRole")]
     public class FreeAppRole : IRole<int>
     {
         [Key]
