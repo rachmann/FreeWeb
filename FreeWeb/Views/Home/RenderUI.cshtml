@@ -1,15 +1,19 @@
 ﻿
 @{
     ViewBag.Title = "RenderUI";
+    Layout = "~/Views/Shared/_LayoutThree.cshtml";
 }
 
 <h2>New Rendered UI</h2>
 
 
-<div id="info">
-    <a href="http://threejs.org" target="_blank">three.js</a> - earth [fly controls]<br /><br />
-    <b>WASD</b> move, <b>R|F</b> up | down, <b>Q|E</b> roll, <b>up|down</b> pitch, <b>left|right</b> yaw<br />
-</div>
+
+    <div id="info">
+        <a href="http://threejs.org" target="_blank">three.js</a> - earth [fly controls]<br />
+        <b>WASD</b> move, <b>R|F</b> up | down, <b>Q|E</b> roll, <b>up|down</b> pitch, <b>left|right</b> yaw<br />
+    </div>
+    <div id="viewport" style="margin: 20px; padding: 20px; border: 3px solid white; height: 90%; width: 90%;"></div>
+
 
 @section Scripts
 {
@@ -25,9 +29,10 @@
 			var cloudsScale = 1.005;
 			var moonScale = 0.23;
 
-			var MARGIN = 0;
-			var SCREEN_HEIGHT = window.innerHeight - MARGIN * 2;
-			var SCREEN_WIDTH  = window.innerWidth;
+			var MARGIN = 15;
+			var vp = $( "#viewport");
+			var SCREEN_HEIGHT = vp.innerHeight() - MARGIN * 2;
+			var SCREEN_WIDTH = vp.innerWidth() - MARGIN * 2;;
 
 			var container, stats;
 			var camera, controls, scene, sceneCube, renderer;
@@ -43,8 +48,9 @@
 
 			function init() {
 
-				container = document.createElement( 'div' );
-				document.body.appendChild( container );
+			    container = document.createElement('div');
+			    var vp = document.getElementById("viewport");
+			    vp.appendChild(container);
 
 				camera = new THREE.PerspectiveCamera( 25, SCREEN_WIDTH / SCREEN_HEIGHT, 50, 1e7 );
 				camera.position.z = radius * 5;
@@ -69,9 +75,9 @@
 					ambient: 0x000000,
 					specular: 0x333333,
 					shininess: 15,
-					map: THREE.ImageUtils.loadTexture( "~/Content/Images/textures/planets/earth_atmos_2048.jpg" ),
-					specularMap: THREE.ImageUtils.loadTexture("~/Content/Images/textures/planets/earth_specular_2048.jpg"),
-					normalMap: THREE.ImageUtils.loadTexture("~/Content/Images/textures/planets/earth_normal_2048.jpg"),
+					map: THREE.ImageUtils.loadTexture( "../Content/Images/textures/planets/earth_atmos_2048.jpg" ),
+					specularMap: THREE.ImageUtils.loadTexture("../Content/Images/textures/planets/earth_specular_2048.jpg"),
+					normalMap: THREE.ImageUtils.loadTexture("../Content/Images/textures/planets/earth_normal_2048.jpg"),
 					normalScale: new THREE.Vector2( 0.85, 0.85 )
 
 				} );
@@ -90,7 +96,7 @@
 
 				var materialClouds = new THREE.MeshLambertMaterial( {
 
-				    map: THREE.ImageUtils.loadTexture("~/Content/Images/textures/planets/earth_clouds_1024.png"),
+				    map: THREE.ImageUtils.loadTexture("../Content/Images/textures/planets/earth_clouds_1024.png"),
 					transparent: true
 
 				} );
@@ -104,12 +110,12 @@
 
 				var materialMoon = new THREE.MeshPhongMaterial( {
 
-				    map: THREE.ImageUtils.loadTexture("~/Content/Images/textures/planets/moon_1024.jpg")
+				    map: THREE.ImageUtils.loadTexture("../Content/Images/textures/planets/moon_1024.jpg")
 
 				} );
 
 				meshMoon = new THREE.Mesh( geometry, materialMoon );
-				meshMoon.position.set( radius * 5, 0, 0 );
+				meshMoon.position.set( radius * 25, 0, 0 );
 				meshMoon.scale.set( moonScale, moonScale, moonScale );
 				scene.add( meshMoon );
 
