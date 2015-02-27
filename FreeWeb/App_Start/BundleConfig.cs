@@ -9,6 +9,7 @@ namespace FreeWeb
         public static void RegisterBundles(BundleCollection bundles)
         {
             BundleTable.EnableOptimizations = false;
+
             bundles.Add(new ScriptBundle("~/bundles/jquery").Include(
                         "~/Scripts/jquery-{version}.js"));
 
@@ -24,9 +25,27 @@ namespace FreeWeb
                       "~/Scripts/bootstrap.js",
                       "~/Scripts/respond.js"));
 
+            bundles.Add(new ScriptBundle("~/bundles/three").Include(
+                    "~/Scripts/three/three.min.js",
+                    "~/Scripts/three/controls/FlyControls.js",
+                    "~/Scripts/three/shaders/CopyShader.js",
+                    "~/Scripts/three/shaders/FilmShader.js",
+                    "~/Scripts/three/postprocessing/EffectComposer.js",
+                    "~/Scripts/three/postprocessing/ShaderPass.js",
+                    "~/Scripts/three/postprocessing/MaskPass.js",
+                    "~/Scripts/three/postprocessing/RenderPass.js",
+                    "~/Scripts/three/postprocessing/FilmPass.js",
+                    "~/Scripts/three/Detector.js",
+                    "~/Scripts/three/libs/stats.min.js"
+                ));
+
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            bundles.Add(new StyleBundle("~/Content/css_three").Include(
+                       "~/Content/bootstrap.css",
+                       "~/Content/sitethree.css"));
 
             // Set EnableOptimizations to false for debugging. For more information,
             // visit http://go.microsoft.com/fwlink/?LinkId=301862
