@@ -13,6 +13,8 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Data.Common;
 
+// use
+// http://www.asp.net/identity/overview/extensibility/change-primary-key-for-users-in-aspnet-identity
 
 namespace FreeIdentity
 {
