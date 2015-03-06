@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper.Contrib.Extensions;
+using Dapper;
+using DapperExtensions;
+using FreeIdentity.DapperExtensions;
 
 namespace FreeIdentity.Models
 {
@@ -13,5 +15,8 @@ namespace FreeIdentity.Models
         public int RoleId { get; set; }
         [Key]
         public int UserId { get; set; }
+
+        public virtual FreeAppRole FreeAppRole { get; set; }
+        public virtual FreeAppUser FreeAppUser { get; set; }
     }
 }

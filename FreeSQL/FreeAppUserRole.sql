@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[FreeAppUserRoles]
+﻿CREATE TABLE [dbo].[FreeAppUserRole]
 (
 	[RoleId] INT NOT NULL, 
     [UserId] INT NOT NULL, 

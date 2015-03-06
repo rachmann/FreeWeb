@@ -31,7 +31,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper">
-      <HintPath>..\packages\Dapper.1.36\lib\net45\Dapper.dll</HintPath>
+      <HintPath>..\..\..\Projects\Dapper-Extensions\DapperExtensions\bin\Debug\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="DapperExtensions">
+      <HintPath>..\..\..\Projects\Dapper-Extensions\DapperExtensions\bin\Debug\DapperExtensions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -75,7 +78,6 @@
   <ItemGroup>
     <Compile Include="AccountViewModels.cs" />
     <Compile Include="City.cs" />
-    <Compile Include="Dapper\SqlMapperExtensions.cs" />
     <Compile Include="ManageViewModels.cs" />
     <Compile Include="Person.cs" />
     <Compile Include="Phone.cs" />

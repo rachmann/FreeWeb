@@ -1,7 +1,8 @@
 ﻿using System;
+using FreeIdentity.DapperExtensions;
 using Microsoft.AspNet.Identity;
 using Dapper;
-using Dapper.Contrib.Extensions;
+using DapperExtensions;
 
 namespace FreeIdentity.Models
 {

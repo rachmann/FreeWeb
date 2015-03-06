@@ -43,9 +43,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Dapper, Version=1.36.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Projects\dapper-dot-net\Dapper NET45\bin\Release\Dapper.dll</HintPath>
+    <Reference Include="Dapper">
+      <HintPath>..\..\..\Projects\Dapper-Extensions\DapperExtensions\bin\Debug\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="DapperExtensions">
+      <HintPath>..\..\..\Projects\Dapper-Extensions\DapperExtensions\bin\Debug\DapperExtensions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Owin, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

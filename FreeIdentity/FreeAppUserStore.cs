@@ -1,5 +1,6 @@
 ﻿using Dapper;
-using Dapper.Contrib.Extensions;
+using DapperExtensions;
+//using FreeIdentity.DapperExtensions;
 using FreeIdentity.Models;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,9 @@ namespace FreeIdentity
         IUserRoleStore<FreeAppUser, int>,
         IUserSecurityStampStore<FreeAppUser, int>,
         IUserEmailStore<FreeAppUser, int>,
+        IUserPhoneNumberStore<FreeAppUser, int>,
+        IUserTwoFactorStore<FreeAppUser, int>,
+        IUserLockoutStore<FreeAppUser, int>,
         IDisposable
     {
         //FIXME: ? Perhaps use this key in Claims - have seen as ValueType (??)
@@ -96,9 +100,9 @@ namespace FreeIdentity
 
         Task<FreeAppUser> IUserStore<FreeAppUser, int>.FindByNameAsync(string userName)
         {
-            return Task.Factory.StartNew(() => _sqlConn.Query<FreeAppUser>(
-                "SELECT * FROM FreeAppUsers WHERE FreeAppUsers.UserName = @userName", 
-                new { userName }).FirstOrDefault());
+            var predicate = Predicates.Field<FreeAppUser>(f => f.UserName, Operator.Eq, userName);
+            return Task.Factory.StartNew(() => _sqlConn.GetList<FreeAppUser>(predicate).FirstOrDefault());
+
         }
 
         #endregion
@@ -126,9 +130,10 @@ namespace FreeIdentity
     
         Task<FreeAppUser> IUserEmailStore<FreeAppUser, int>.FindByEmailAsync(string email)
         {
-            return Task.Factory.StartNew(() => _sqlConn.Query<FreeAppUser>(
-                "SELECT * FROM FreeAppUsers WHERE FreeAppUsers.Email = @email", 
-                new { email }).FirstOrDefault());
+
+            var predicateUser = Predicates.Field<FreeAppUser>(f => f.Email, Operator.Eq, email);
+            return Task.Factory.StartNew(() => _sqlConn.GetList<FreeAppUser>(predicateUser).FirstOrDefault());
+
         }
         #endregion
 
@@ -156,11 +161,17 @@ namespace FreeIdentity
             return Task.Factory.StartNew(() =>
             {
                 //does this role exist?
-                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.Name = @roleName", new { roleName }).FirstOrDefault();
+                var predicateRole = Predicates.Field<FreeAppRole>(f => f.Name, Operator.Eq, roleName);
+                var roleItem = _sqlConn.GetList<FreeAppRole>(predicateRole).FirstOrDefault();
+
                 if (roleItem != null)
                 {
                     //does this user & role combo already exist?
-                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.UserId = @UserId AND FreeAppUserRoles.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
+                    var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserRole>(f => f.UserId, Operator.Eq, user.Id));
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserRole>(f => f.RoleId, Operator.Eq, roleItem.Id));
+                    var roleUserItem = _sqlConn.GetList<FreeAppUserRole>(pg).FirstOrDefault();
+
                     if (roleUserItem == null)
                     {
                         // no - so add
@@ -169,6 +180,8 @@ namespace FreeIdentity
 
                 }
             });
+
+            
         }
 
         public Task RemoveFromRoleAsync(FreeAppUser user, string roleName)
@@ -176,29 +189,39 @@ namespace FreeIdentity
             return Task.Factory.StartNew(() =>
             {
                 //does this role exist?
-                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRoles WHERE FreeAppRoles.Name = @roleName", new { roleName }).FirstOrDefault();
+                var predicateRole = Predicates.Field<FreeAppRole>(f => f.Name, Operator.Eq, roleName);
+                var roleItem = _sqlConn.GetList<FreeAppRole>(predicateRole).FirstOrDefault();
+
                 if (roleItem != null)
                 {
                     //does this user & role combo already exist?
-                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.UserId = @UserId AND FreeAppUserRoles.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
+                    var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserRole>(f => f.UserId, Operator.Eq, user.Id));
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserRole>(f => f.RoleId, Operator.Eq, roleItem.Id));
+                    var roleUserItem = _sqlConn.GetList<FreeAppUserRole>(pg).FirstOrDefault();
+
                     if (roleUserItem != null)
                     {
                         // yes - so delete
-                        _sqlConn.Delete(new FreeAppUserRole {UserId = user.Id, RoleId = roleItem.Id });
+                        _sqlConn.Delete(roleUserItem);
                     }
 
                 }
             });
+
         }
 
         public Task<IList<string>> GetRolesAsync(FreeAppUser user)
         {
+
+
+
             return Task.Factory.StartNew(() =>
             {
                 //does this role exist?
                 //does this user & role combo already exist?
-                var results = _sqlConn.Query<FreeAppRole>(@"SELECT FreeAppRoles.* FROM FreeAppUserRoles ru
-                             INNER JOIN FreeAppRoles on FreeAppRoles.Id = ru.RoleId WHERE ru.UserId = @Id", new { user.Id }).ToList();
+                var results = _sqlConn.Query<FreeAppRole>(@"SELECT FreeAppRole.* FROM FreeAppUserRole ru
+                             INNER JOIN FreeAppRole on FreeAppRole.Id = ru.RoleId WHERE ru.UserId = @Id", new { Id = user.Id }).ToList();
 
                 var retList = results.Select(r => r.Name).ToList();
                 return (IList<string>)retList;
@@ -211,11 +234,16 @@ namespace FreeIdentity
             {
                 //does this role exist?
                 var result = false;
-                var roleItem = _sqlConn.Query<FreeAppRole>("SELECT * FROM FreeAppRoles WHERE FreeAppRoles.Name = @roleName", new { roleName }).FirstOrDefault();
+                var predicateRole = Predicates.Field<FreeAppRole>(f => f.Name, Operator.Eq, roleName);
+                var roleItem = _sqlConn.GetList<FreeAppRole>(predicateRole).FirstOrDefault();
                 if (roleItem != null)
                 {
                     //does this user & role combo already exist?
-                    var roleUserItem = _sqlConn.Query<FreeAppUserRole>("SELECT * FROM FreeAppUserRoles WHERE FreeAppUserRoles.UserId = @UserId AND FreeAppUserRoles.RoleId = @RoleId", new { UserId = user.Id, RoleId = roleItem.Id }).FirstOrDefault();
+                    var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserRole>(f => f.UserId, Operator.Eq, user.Id));
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserRole>(f => f.RoleId, Operator.Eq, roleItem.Id));
+                    var roleUserItem = _sqlConn.GetList<FreeAppUserRole>(pg).FirstOrDefault();
+
                     if (roleUserItem != null)
                     {
                         result = true;
@@ -254,10 +282,11 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    var userLoginItem =
-                        _sqlConn.Query<FreeAppUserLogin>(
-                            "SELECT * FROM FreeAppUserLogins WHERE FreeAppUserLogins.UserId = @Id AND FreeAppUserLogins.ProviderKey = @ProviderKey",
-                            new { user.Id, login.ProviderKey }).FirstOrDefault();
+                    var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserLogin>(f => f.UserId, Operator.Eq, user.Id));
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserLogin>(f => f.ProviderKey, Operator.Eq, login.ProviderKey));
+                    var userLoginItem = _sqlConn.GetList<FreeAppUserLogin>(pg).FirstOrDefault();
+
                     if (userLoginItem == null)
                     {
                         _sqlConn.Insert(
@@ -271,10 +300,7 @@ namespace FreeIdentity
                 }
             });
         }
-        public Task RemoveLoginAsync(FreeAppUser user, FreeAppUserLogin login)
-        {
-            return RemoveLoginAsync(user, new UserLoginInfo(login.LoginProvider, login.ProviderKey));
-        }
+    
         public Task RemoveLoginAsync(FreeAppUser user, UserLoginInfo login)
         {
             return Task.Factory.StartNew(() =>
@@ -283,9 +309,11 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    var userLoginItem = _sqlConn.Query<FreeAppUserLogin>(
-                        "SELECT * FROM FreeAppUserLogins WHERE FreeAppUserLogins.UserId = @Id AND FreeAppUserLogins.ProviderKey = @ProviderKey", 
-                        new { user.Id, login.ProviderKey }).FirstOrDefault();
+                    var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserLogin>(f => f.UserId, Operator.Eq, user.Id));
+                    pg.Predicates.Add(Predicates.Field<FreeAppUserLogin>(f => f.ProviderKey, Operator.Eq, login.ProviderKey));
+
+                    var userLoginItem = _sqlConn.GetList<FreeAppUserLogin>(pg).FirstOrDefault();
 
                     if (userLoginItem != null)
                     {
@@ -304,12 +332,14 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    logins = _sqlConn.Query<FreeAppUserLogin>("SELECT * FROM [dbo].[FreeAppUserLogins] WHERE [dbo].[FreeAppUserLogins].[UserId] = @Id;", 
-                        new { user.Id }).Select(culi => new UserLoginInfo(culi.LoginProvider, culi.ProviderKey)).ToList();
+                    var predicate = Predicates.Field<FreeAppUserLogin>(f => f.UserId, Operator.Eq, user.Id);
+                    logins = _sqlConn.GetList<FreeAppUserLogin>(predicate).Select(culi => new UserLoginInfo(culi.LoginProvider, culi.ProviderKey)).ToList();
+
                 }
 
                 return (IList<UserLoginInfo>)logins;
             });
+
         }
 
         public Task<FreeAppUser> FindAsync(UserLoginInfo login)
@@ -318,20 +348,21 @@ namespace FreeIdentity
             {
                 //does this user exist?
                 FreeAppUser user = null;
-                var freeAppUserLogin = _sqlConn.Query<FreeAppUserLogin>("SELECT * FROM [dbo].[FreeAppUserLogins] WHERE [dbo].[FreeAppUserLogins].[LoginProvider] = @LoginProvider AND [dbo].[FreeAppUserLogins].[ProviderKey] = @ProviderKey;",
-                    new { login.LoginProvider, login.ProviderKey }).FirstOrDefault();
-                if (freeAppUserLogin != null)
+                var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                pg.Predicates.Add(Predicates.Field<FreeAppUserLogin>(f => f.LoginProvider, Operator.Eq, login.LoginProvider));
+                pg.Predicates.Add(Predicates.Field<FreeAppUserLogin>(f => f.ProviderKey, Operator.Eq, login.ProviderKey));
+
+                var userLoginItem = _sqlConn.GetList<FreeAppUserLogin>(pg).FirstOrDefault();
+
+                if (userLoginItem != null)
                 {
-                    user = _sqlConn.Get<FreeAppUser>(freeAppUserLogin.UserId);
+                    user = _sqlConn.Get<FreeAppUser>(userLoginItem.UserId);
                 }
 
-                return user;
+                return (FreeAppUser)user;
             });
         }
-        public Task<FreeAppUser> FindAsync(FreeAppUserLogin login)
-        {
-            return FindAsync(new UserLoginInfo(login.LoginProvider, login.ProviderKey));
-        }
+
         #endregion
 
         #region IUserClaimStore Helpers
@@ -340,9 +371,7 @@ namespace FreeIdentity
         {
             return Task.Factory.StartNew(() =>
             {
-                var claimTypes = _sqlConn.Query<FreeAppUserClaimType>(
-                    "SELECT * FROM FreeAppUserClaimTypes")
-                    .ToList();
+                var claimTypes = _sqlConn.Query<FreeAppUserClaimType>("select * from FreeAppUserClaimType").ToList();
 
                 return (IList<FreeAppUserClaimType>)claimTypes;
             });
@@ -360,7 +389,8 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    claims = _sqlConn.Query<FreeAppUserClaimJoined>("SELECT cuc.*, cuct.ClaimTypeCode FROM FreeAppUserClaims cuc INNER JOIN FreeAppUserClaimTypes cuct ON cuc.ClaimTypeId = cuct.TypeId WHERE cuc.UserId = @Id;",
+                    claims = _sqlConn.Query<FreeAppUserClaimJoined>("SELECT cuc.*, cuct.ClaimTypeCode FROM FreeAppUserClaim cuc "+
+                                " INNER JOIN FreeAppUserClaimType cuct ON cuc.ClaimTypeId = cuct.TypeId WHERE cuc.UserId = @Id;",
                     new { user.Id }).Select(cuc =>
                         new Claim(cuc.ClaimTypeCode, cuc.ClaimValue, cuc.ClaimValueType, cuc.Issuer))
                            .ToList();
@@ -381,8 +411,8 @@ namespace FreeIdentity
 
                     var oldClaim =
                         _sqlConn.Query<FreeAppUserClaim>(
-                            "SELECT cuc.* FROM FreeAppUserClaims cuc "+
-                               "INNER JOIN FreeAppUserClaimTypes cuct ON cuc.ClaimTypeId = cuct.TypeId "+
+                            "SELECT cuc.* FROM FreeAppUserClaim cuc "+
+                               "INNER JOIN FreeAppUserClaimType cuct ON cuc.ClaimTypeId = cuct.TypeId "+
                                "WHERE cuc.UserId = @Id AND " +
                                    "cuct.ClaimTypeCode = @Type AND " +
                                    "cuc.ClaimValue = @Value AND " +
@@ -392,10 +422,8 @@ namespace FreeIdentity
                     if (oldClaim == null)
                     {
                         // verify ClaimType
-                        var theClaimType = _sqlConn.Query<FreeAppUserClaimType>(
-                           "SELECT * FROM FreeAppUserClaimTypes WHERE ClaimTypeCode = @Type;",
-                           new { claim.Type })
-                           .FirstOrDefault();
+                        var predicate = Predicates.Field<FreeAppUserClaimType>(f => f.ClaimTypeCode, Operator.Eq, claim.Type);
+                        var theClaimType = _sqlConn.GetList<FreeAppUserClaimType>(predicate).FirstOrDefault();
 
                         if (theClaimType != null)
                         {
@@ -414,41 +442,6 @@ namespace FreeIdentity
             });
         }
 
-        public Task AddClaimAsync(FreeAppUser user, FreeAppUserClaim claim)
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                //does this user exist?
-                var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
-                if (userItem != null)
-                {
-                    var oldClaim =
-                        _sqlConn.Query<FreeAppUserClaim>(
-                            "SELECT * FROM FreeAppUserClaims cuc " +
-                               "WHERE cuc.UserId = @Id AND " +
-                                  "cuc.ClaimTypeId = @ClaimTypeId AND " +
-                                  "cuc.ClaimValue = @ClaimValue AND " +
-                                  "cuc.Issuer = @Issuer;",
-                            new { user.Id, claim.ClaimTypeId, claim.ClaimValue, claim.Issuer })
-                            .FirstOrDefault();
-                    if (oldClaim == null)
-                    {
-                        // verify ClaimType
-                       var theClaimType = _sqlConn.Query<FreeAppUserClaimType>(
-                           "SELECT * FROM FreeAppUserClaimTypes WHERE TypeId = @ClaimTypeId;",
-                           new {  claim.ClaimTypeId })
-                           .FirstOrDefault();
-
-                        if (theClaimType != null)
-                        {
-                            _sqlConn.Insert<FreeAppUserClaim>(claim);
-                        }
-                    }
-                }
-                return Task.FromResult(0);
-            });
-        }
-
         public Task RemoveClaimAsync(FreeAppUser user, Claim claim)
         {
             return Task.Factory.StartNew(() =>
@@ -457,20 +450,19 @@ namespace FreeIdentity
                 var userItem = _sqlConn.Get<FreeAppUser>(user.Id);
                 if (userItem != null)
                 {
-                    var theClaimType = _sqlConn.Query<FreeAppUserClaimType>(
-                       "SELECT * from FreeAppUserClaimTypes WHERE ClaimTypeCode = @Type;",
-                       new { claim.Type })
-                       .FirstOrDefault();
+                    var predicate = Predicates.Field<FreeAppUserClaimType>(f => f.ClaimTypeCode, Operator.Eq, claim.Type);
+                    var theClaimType = _sqlConn.GetList<FreeAppUserClaimType>(predicate).FirstOrDefault();
+
                     if (theClaimType != null)
                     {
-                        var oldClaim = _sqlConn.Query<FreeAppUserClaim>(
-                            "SELECT * from [dbo].[FreeAppUserClaims] " +
-                                "WHERE UserId = @Id AND " +
-                                    "ClaimTypeId = @TypeId AND " +
-                                    "ClaimValue = @Value AND "+
-                                    "Issuer = @Issuer;",
-                            new {user.Id, theClaimType.TypeId, claim.Value, claim.Issuer})
-                            .FirstOrDefault();
+
+
+                        var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                        pg.Predicates.Add(Predicates.Field<FreeAppUserClaim>(f => f.UserId, Operator.Eq, user.Id));
+                        pg.Predicates.Add(Predicates.Field<FreeAppUserClaim>(f => f.ClaimTypeId, Operator.Eq, theClaimType.TypeId));
+                        pg.Predicates.Add(Predicates.Field<FreeAppUserClaim>(f => f.ClaimValue, Operator.Eq, claim.Value));
+                        var oldClaim = _sqlConn.GetList<FreeAppUserClaim>(pg).FirstOrDefault();
+                      
                         if (oldClaim != null)
                         {
                             _sqlConn.Delete(oldClaim);
@@ -497,6 +489,75 @@ namespace FreeIdentity
                 _sqlConn.Dispose();
             }
 
+        }
+
+        public Task SetPhoneNumberAsync(FreeAppUser user, string phoneNumber)
+        {
+            return Task.Factory.StartNew(() => user.PhoneNumber = phoneNumber);
+        }
+
+        public Task<string> GetPhoneNumberAsync(FreeAppUser user)
+        {
+            return Task.FromResult(user.PhoneNumber);
+        }
+
+        public Task<bool> GetPhoneNumberConfirmedAsync(FreeAppUser user)
+        {
+            return Task.FromResult(user.PhoneNumberConfirmed);
+        }
+
+        public Task SetPhoneNumberConfirmedAsync(FreeAppUser user, bool confirmed)
+        {
+            return Task.Factory.StartNew(() => user.PhoneNumberConfirmed = confirmed);
+        }
+
+        public Task SetTwoFactorEnabledAsync(FreeAppUser user, bool enabled)
+        {
+            return Task.Factory.StartNew(() => user.TwoFactorEnabled = enabled);
+        }
+
+        public Task<bool> GetTwoFactorEnabledAsync(FreeAppUser user)
+        {
+            return Task.FromResult(user.TwoFactorEnabled);
+        }
+
+        public Task<DateTimeOffset> GetLockoutEndDateAsync(FreeAppUser user)
+        {
+            return Task.FromResult( new DateTimeOffset(user.LockoutEndDateUtc.HasValue ? user.LockoutEndDateUtc.Value : DateTime.MinValue));
+        }
+
+        public Task SetLockoutEndDateAsync(FreeAppUser user, DateTimeOffset lockoutEnd)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                user.LockoutEndDateUtc = lockoutEnd.DateTime;
+                //user.LockoutEnabled = (user.LockoutEndDateUtc > DateTime.Now);
+            });
+        }
+
+        public Task<int> IncrementAccessFailedCountAsync(FreeAppUser user)
+        {
+            return Task.Factory.StartNew(() => user.AccessFailedCount++);
+        }
+
+        public Task ResetAccessFailedCountAsync(FreeAppUser user)
+        {
+            return Task.Factory.StartNew(() => user.AccessFailedCount=0);
+        }
+
+        public Task<int> GetAccessFailedCountAsync(FreeAppUser user)
+        {
+            return Task.FromResult(user.AccessFailedCount);
+        }
+
+        public Task<bool> GetLockoutEnabledAsync(FreeAppUser user)
+        {
+            return Task.FromResult(user.LockoutEnabled);
+        }
+
+        public Task SetLockoutEnabledAsync(FreeAppUser user, bool enabled)
+        {
+            return Task.Factory.StartNew(() => user.LockoutEnabled = enabled);
         }
     }
 }

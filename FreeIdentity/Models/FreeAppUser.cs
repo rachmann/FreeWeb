@@ -1,9 +1,10 @@
 ﻿using System;
 using Dapper;
+using DapperExtensions;
+using FreeIdentity.DapperExtensions;
 using Microsoft.AspNet.Identity;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Dapper.Contrib.Extensions;
 
 namespace FreeIdentity.Models
 {
@@ -24,7 +25,6 @@ namespace FreeIdentity.Models
 
         [Key]
         public int Id { get; set; }
-        public int UserId { get; set; }                        
         public string Description { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }

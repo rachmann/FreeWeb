@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Dapper;
-using Dapper.Contrib.Extensions;
+using DapperExtensions;
+using FreeIdentity.DapperExtensions;
 using Microsoft.AspNet.Identity;
 using FreeIdentity.Models;
 using Microsoft.Owin;
@@ -58,10 +59,10 @@ namespace FreeIdentity
             manager.ClaimsIdentityFactory = new FreeAppClaimsIdentityFactory();
             manager.EmailService = new EmailService();
             manager.RegisterTwoFactorProvider("PhoneCode",
-            new PhoneNumberTokenProvider<FreeAppUser, int>
-            {
-                MessageFormat = "Your security code is: {0}"
-            });
+                new PhoneNumberTokenProvider<FreeAppUser, int>
+                {
+                    MessageFormat = "Your security code is: {0}"
+                });
             manager.RegisterTwoFactorProvider("EmailCode",
                 new EmailTokenProvider<FreeAppUser, int>
                 {

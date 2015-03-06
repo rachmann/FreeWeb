@@ -1,7 +1,6 @@
-﻿CREATE TABLE [dbo].[FreeAppUsers]
+﻿CREATE TABLE [dbo].[FreeAppUser]
 (
 	[Id] INT IDENTITY(1,1) NOT NULL, 
-	[UserId] INT NOT NULL, 
     [Description] NVARCHAR(200) NULL, 
     [UserName] NVARCHAR(50) NOT NULL, 
     [Email] NVARCHAR(50) NOT NULL, 
